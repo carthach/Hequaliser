@@ -8,10 +8,12 @@ TEST_CASE("one is equal to one", "[dummy]")
 }
 
 // https://github.com/McMartin/FRUT/issues/490#issuecomment-663544272
-FrequalizerAudioProcessor testPlugin;
+
 
 TEST_CASE("Plugin instance name", "[name]")
 {
+  auto gui = juce::ScopedJuceInitialiser_GUI {};
+  FrequalizerAudioProcessor testPlugin;
   CHECK_THAT(testPlugin.getName().toStdString(),
              Catch::Matchers::Equals("Hequaliser"));
 }
