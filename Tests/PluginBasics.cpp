@@ -1,4 +1,4 @@
-#include <PluginProcessor.h>
+#include <HequaliserProcessor.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 
@@ -8,12 +8,12 @@ TEST_CASE("one is equal to one", "[dummy]")
 }
 
 // https://github.com/McMartin/FRUT/issues/490#issuecomment-663544272
-AudioPluginAudioProcessor testPlugin;
+FrequalizerAudioProcessor testPlugin;
 
 TEST_CASE("Plugin instance name", "[name]")
 {
   CHECK_THAT(testPlugin.getName().toStdString(),
-             Catch::Matchers::Equals("Pamplejuce"));
+             Catch::Matchers::Equals("Hequaliser"));
 }
 
 #ifdef PAMPLEJUCE_IPP
