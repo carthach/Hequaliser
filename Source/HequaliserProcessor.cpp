@@ -12,6 +12,7 @@
 #include "HequaliserEditor.h"
 
 
+juce::String FrequalizerAudioProcessor::paramHeadphoneType   ("headphoneType");
 juce::String FrequalizerAudioProcessor::paramOutput   ("output");
 juce::String FrequalizerAudioProcessor::paramType     ("type");
 juce::String FrequalizerAudioProcessor::paramFrequency("frequency");
@@ -28,22 +29,12 @@ namespace IDs
 
 juce::String FrequalizerAudioProcessor::getBandID (size_t index)
 {
-    switch (index)
-    {
-        case 0: return "Lowest";
-        case 1: return "Low";
-        case 2: return "Low Mids";
-        case 3: return "High Mids";
-        case 4: return "High";
-        case 5: return "Highest";
-        default: break;
-    }
-    return "unknown";
+    return juce::String(index);
 }
 
 int FrequalizerAudioProcessor::getBandIndexFromID (juce::String paramID)
 {
-    for (size_t i=0; i < 6; ++i)
+    for (size_t i=0; i < 10; ++i)
         if (paramID.startsWith (getBandID (i) + "-"))
             return int (i);
 
@@ -53,12 +44,16 @@ int FrequalizerAudioProcessor::getBandIndexFromID (juce::String paramID)
 std::vector<FrequalizerAudioProcessor::Band> createDefaultBands()
 {
     std::vector<FrequalizerAudioProcessor::Band> defaults;
-    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS ("Lowest"),    juce::Colours::blue,   FrequalizerAudioProcessor::HighPass,    20.0f, 0.707f));
-    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS ("Low"),       juce::Colours::brown,  FrequalizerAudioProcessor::LowShelf,   250.0f, 0.707f));
-    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS ("Low Mids"),  juce::Colours::green,  FrequalizerAudioProcessor::Peak,       500.0f, 0.707f));
-    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS ("High Mids"), juce::Colours::coral,  FrequalizerAudioProcessor::Peak,      1000.0f, 0.707f));
-    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS ("High"),      juce::Colours::orange, FrequalizerAudioProcessor::HighShelf, 5000.0f, 0.707f));
-    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS ("Highest"),   juce::Colours::red,    FrequalizerAudioProcessor::LowPass,  12000.0f, 0.707f));
+    
+    int bandNumber = 0;
+    
+    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS (juce::String(bandNumber++)),       juce::Colours::brown,  FrequalizerAudioProcessor::LowShelf,   250.0f, 0.707f));
+    
+    for(; bandNumber<9; ++bandNumber)
+        defaults.push_back (FrequalizerAudioProcessor::Band (TRANS (juce::String(bandNumber)),  juce::Colours::green,  FrequalizerAudioProcessor::Peak,       500.0f, 0.707f));
+        
+    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS (juce::String(bandNumber++)),      juce::Colours::orange, FrequalizerAudioProcessor::HighShelf, 5000.0f, 0.707f));
+    
     return defaults;
 }
 
@@ -71,6 +66,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     auto defaults = createDefaultBands();
 
     {
+        auto typeParameter = std::make_unique<juce::AudioParameterChoice> (juce::ParameterID{FrequalizerAudioProcessor::paramHeadphoneType, 1},
+                                                                     TRANS ("Headphone Name"),
+                                                                     FrequalizerAudioProcessor::getHeadphoneNames(), 0);
+        
         auto param = std::make_unique<juce::AudioParameterFloat> (juce::ParameterID{FrequalizerAudioProcessor::paramOutput, 1}, TRANS ("Output"),
                                                             juce::NormalisableRange<float> (0.0f, 2.0f, 0.01f), 1.0f,
                                                             TRANS ("Output level"),
@@ -78,7 +77,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
                                                             [](float value, int) {return juce::String (juce::Decibels::gainToDecibels(value), 1) + " dB";},
                                                             [](juce::String text) {return juce::Decibels::decibelsToGain (text.dropLastCharacters (3).getFloatValue());});
 
-        auto group = std::make_unique<juce::AudioProcessorParameterGroup> ("global", TRANS ("Globals"), "|", std::move (param));
+        auto group = std::make_unique<juce::AudioProcessorParameterGroup> ("global", TRANS ("Globals"), "|", std::move (param), std::move(typeParameter));
         params.push_back (std::move (group));
     }
 
@@ -437,6 +436,29 @@ juce::StringArray FrequalizerAudioProcessor::getFilterTypeNames()
         TRANS ("1st Low Pass"),
         TRANS ("Low Pass")
     };
+}
+
+juce::StringArray FrequalizerAudioProcessor::getHeadphoneNames()
+{
+    StringArray headphoneNames;
+        
+    
+    auto file = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+    file = file.getChildFile("Hequaliser/headphoneNames.txt");
+    
+    if (! file.existsAsFile()) // [1]
+        return headphoneNames;
+     
+    auto fileText = file.loadFileAsString();
+        
+    var json;
+                
+    if (JSON::parse (fileText, json).wasOk())
+        if(auto parsedObject = json.getDynamicObject())
+            for(auto & headphoneSetting : parsedObject->getProperties())            
+                headphoneNames.add(headphoneSetting.name.toString());
+    
+    return headphoneNames;
 }
 
 void FrequalizerAudioProcessor::updateBand (const size_t index)

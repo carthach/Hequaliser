@@ -37,6 +37,7 @@ public:
         LastFilterID
     };
 
+    static juce::String paramHeadphoneType;
     static juce::String paramOutput;
     static juce::String paramType;
     static juce::String paramFrequency;
@@ -78,6 +79,7 @@ public:
     bool getBandSolo (int index) const;
 
     static juce::StringArray getFilterTypeNames();
+    static juce::StringArray getHeadphoneNames();
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;

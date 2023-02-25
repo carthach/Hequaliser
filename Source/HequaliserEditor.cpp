@@ -16,7 +16,7 @@ static float maxDB       = 24.0f;
 
 //==============================================================================
 FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAudioProcessor& p)
-  : juce::AudioProcessorEditor (&p), freqProcessor (p)
+  : juce::AudioProcessorEditor (&p), freqProcessor (p)    
 {
     tooltipWindow->setMillisecondsBeforeTipAppears (1000);
 
@@ -33,6 +33,12 @@ FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAud
     addAndMakeVisible (output);
     attachments.add (new juce::AudioProcessorValueTreeState::SliderAttachment (freqProcessor.getPluginState(), FrequalizerAudioProcessor::paramOutput, output));
     output.setTooltip (TRANS ("Overall Gain"));
+    
+    if (auto* choiceParameter = dynamic_cast<juce::AudioParameterChoice*>(freqProcessor.getPluginState().getParameter (FrequalizerAudioProcessor::paramHeadphoneType)))
+        headphoneType.addItemList (choiceParameter->choices, 1);
+    
+    headphoneTypeAttachment = new juce::AudioProcessorValueTreeState::ComboBoxAttachment (freqProcessor.getPluginState(), FrequalizerAudioProcessor::paramHeadphoneType, headphoneType);
+    addAndMakeVisible (headphoneType);
 
     auto size = freqProcessor.getSavedSize();
     setResizable (true, true);
@@ -48,6 +54,8 @@ FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAud
     freqProcessor.addChangeListener (this);
 
     startTimerHz (30);
+    
+    (new MyTask())->launchThread();
 }
 
 FrequalizerAudioProcessorEditor::~FrequalizerAudioProcessorEditor()
@@ -141,6 +149,7 @@ void FrequalizerAudioProcessorEditor::resized()
 
     frame.setBounds (bandSpace.removeFromTop (bandSpace.getHeight() / 2));
     output.setBounds (frame.getBounds().reduced (8));
+    headphoneType.setBounds (frame.getBounds().reduced (8));
 
     plotFrame.reduce (3, 3);
     brandingFrame = bandSpace.reduced (5);
