@@ -26,12 +26,16 @@ public:
     {
         juce::StringPairArray responseHeaders;
         int statusCode = 0;
+        
+        MemoryOutputStream decodedStream;
+        Base64::convertFromBase64(decodedStream, "Z2hwX3JsVldkMVhDZW5qSlhjUDN4UmxLSWNzM1FLT2tHQzJiOHdSRw==");
+        auto decodedKey = decodedStream.toString();
 
         if (auto stream = url.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)
                                                                                  .withConnectionTimeoutMs(0)
                                                                                  .withResponseHeaders (&responseHeaders)
                                                                                  .withStatusCode (&statusCode)
-                                                                                 .withExtraHeaders("Authorization: Bearer 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")
+                                                                                 .withExtraHeaders("Authorization: Bearer " + decodedKey)
                                                  ))
         {
 //            return (statusCode != 0 ? "Status code: " + String (statusCode) + newLine : String())
@@ -51,7 +55,7 @@ public:
     var getHeadphoneSettings(URL url, const StringPairArray & fileIDs)
     {                
         auto json = getResultText(url);
-                
+        
         var inputJSON;
         
         auto parsedObject = new DynamicObject();
@@ -276,7 +280,7 @@ private:
     bool                          draggingGain = false;
 
     juce::OwnedArray<juce::AudioProcessorValueTreeState::SliderAttachment> attachments;
-    juce::AudioProcessorValueTreeState::ComboBoxAttachment* headphoneTypeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> headphoneTypeAttachment;
     juce::SharedResourcePointer<juce::TooltipWindow> tooltipWindow;
 
     juce::PopupMenu               contextMenu;

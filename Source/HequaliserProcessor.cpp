@@ -458,6 +458,9 @@ juce::StringArray FrequalizerAudioProcessor::getHeadphoneNames()
             for(auto & headphoneSetting : parsedObject->getProperties())            
                 headphoneNames.add(headphoneSetting.name.toString());
     
+    if(headphoneNames.isEmpty())
+       headphoneNames = {"test1", "test2"};
+    
     return headphoneNames;
 }
 

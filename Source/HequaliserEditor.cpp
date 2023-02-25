@@ -37,7 +37,7 @@ FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAud
     if (auto* choiceParameter = dynamic_cast<juce::AudioParameterChoice*>(freqProcessor.getPluginState().getParameter (FrequalizerAudioProcessor::paramHeadphoneType)))
         headphoneType.addItemList (choiceParameter->choices, 1);
     
-    headphoneTypeAttachment = new juce::AudioProcessorValueTreeState::ComboBoxAttachment (freqProcessor.getPluginState(), FrequalizerAudioProcessor::paramHeadphoneType, headphoneType);
+    headphoneTypeAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment (freqProcessor.getPluginState(), FrequalizerAudioProcessor::paramHeadphoneType, headphoneType));
     addAndMakeVisible (headphoneType);
 
     auto size = freqProcessor.getSavedSize();
