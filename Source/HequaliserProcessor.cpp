@@ -338,7 +338,7 @@ void FrequalizerAudioProcessor::parameterChanged (const juce::String& parameter,
         updatePlots();
         return;
     }
-
+        
     int index = getBandIndexFromID (parameter);
     if (juce::isPositiveAndBelow (index, bands.size()))
     {

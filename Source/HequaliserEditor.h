@@ -52,37 +52,13 @@ public:
         return "Failed to connect!";
     }
     
-    var getHeadphoneSettings(URL url, const StringPairArray & fileIDs)
-    {                
-        auto json = getResultText(url);
-        
-        var inputJSON;
-        
-        auto parsedObject = new DynamicObject();
-                    
-        if (JSON::parse (json, inputJSON).wasOk())
-            if (auto * obj = inputJSON.getDynamicObject())
-                if(auto * data = obj->getProperty("data").getDynamicObject())
-                    if(auto * repo = data->getProperty("repository").getDynamicObject())
-                        for(auto & file : repo->getProperties())
-                            parsedObject->setProperty(fileIDs[file.name], file.value);
-        
-        return var(parsedObject);
-        
-        String result;
-                                                                                            
-        auto lineTokens = StringArray::fromTokens(result, ":,", "");
-        auto contentResult = lineTokens[lineTokens.indexOf("\"content\"")+1];
-        contentResult = contentResult.unquoted();
-        contentResult = contentResult.removeCharacters("\\n");
-                    
-        MemoryOutputStream decodedStream;
-        
-        auto resultList = StringArray::fromLines(decodedStream.toString());
-        
+    DynamicObject* getHeadphoneSetting(String headphoneSettingString)
+    {
         auto headphoneSetting = new DynamicObject();
-
-        for(auto line : resultList)
+        
+        DBG(headphoneSettingString);
+        
+        for(auto line : StringArray::fromLines(headphoneSettingString))
         {
             auto lineTokens = StringArray::fromTokens(line, " :", "");
 
@@ -90,19 +66,39 @@ public:
                 headphoneSetting->setProperty("Preamp", lineTokens[2]);
 
             if(lineTokens[0] == "Filter")
-            {
-                DynamicObject* filterSetting = new DynamicObject();
+            {                                    
+                auto filterSetting = new DynamicObject();
 
                 filterSetting->setProperty("Type", lineTokens[lineTokens.indexOf("ON")+1]);
                 filterSetting->setProperty("Fc", lineTokens[lineTokens.indexOf("Fc")+1]);
                 filterSetting->setProperty("Gain", lineTokens[lineTokens.indexOf("Gain")+1]);
                 filterSetting->setProperty("Q", lineTokens[lineTokens.indexOf("Q")+1]);
                                                                                     
-                headphoneSetting->setProperty(lineTokens[1], var(filterSetting));
+                headphoneSetting->setProperty(lineTokens[1], filterSetting);
             }
         }
+        
+
                         
         return headphoneSetting;
+    }    
+    
+    var getHeadphoneSettings(URL url, const StringPairArray & fileIDs)
+    {
+        auto json = getResultText(url);
+            
+        var inputJSON;
+        
+        auto parsedObject = new DynamicObject();
+        
+        if (JSON::parse (json, inputJSON).wasOk())
+            if (auto * obj = inputJSON.getDynamicObject())
+                if(auto * data = obj->getProperty("data").getDynamicObject())
+                    if(auto * repo = data->getProperty("repository").getDynamicObject())
+                        for(auto & file : repo->getProperties())
+                            parsedObject->setProperty(fileIDs[file.name], getHeadphoneSetting(file.value["text"].toString()));
+        
+        return var(parsedObject);
     }
      
     void run()
