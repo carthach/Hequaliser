@@ -79,7 +79,8 @@ public:
     bool getBandSolo (int index) const;
 
     static juce::StringArray getFilterTypeNames();
-    static juce::StringArray getHeadphoneNames();
+    static juce::var getHeadphoneSettings();
+    static juce::StringArray getHeadphoneNames(const juce::var& headphoneSettings);
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -147,6 +148,9 @@ private:
     void updateBand (const size_t index);
 
     void updateBypassedStates ();
+    
+    void loadHeadphoneSetting(int index);
+    void loadBandSetting(juce::String parameter, float newValue);
 
     void updatePlots ();
 
@@ -172,4 +176,6 @@ private:
     Analyser<float> outputAnalyser;
 
     juce::Point<int> editorSize = { 900, 500 };
+    
+    juce::var headphoneSettings;
 };

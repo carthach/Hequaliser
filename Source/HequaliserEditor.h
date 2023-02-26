@@ -56,8 +56,6 @@ public:
     {
         auto headphoneSetting = new DynamicObject();
         
-        DBG(headphoneSettingString);
-        
         for(auto line : StringArray::fromLines(headphoneSettingString))
         {
             auto lineTokens = StringArray::fromTokens(line, " :", "");
@@ -146,7 +144,7 @@ public:
             
             fileIDs.set(fileID, headphoneName);
                                                                       
-            postData += String::formatted(R"(%s: object(expression: \"master:results/oratory1990/%s/%s/%s FixedBandEQ.txt\") { ... on Blob { text } } )",fileID.toRawUTF8(), headphoneLink.toRawUTF8(), headphoneName.toRawUTF8(), headphoneName.toRawUTF8());
+            postData += String::formatted(R"(%s: object(expression: \"master:results/oratory1990/%s/%s/%s ParametricEQ.txt\") { ... on Blob { text } } )",fileID.toRawUTF8(), headphoneLink.toRawUTF8(), headphoneName.toRawUTF8(), headphoneName.toRawUTF8());
                                                                                                                     
             // this will update the progress bar on the dialog box
             setProgress (i / (double) resultList.size());
