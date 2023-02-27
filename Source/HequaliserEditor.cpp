@@ -55,7 +55,11 @@ FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAud
 
     startTimerHz (30);
     
-    (new MyTask())->launchThread();
+    auto file = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+    file = file.getChildFile("Hequaliser/headphoneNames.txt");
+    
+    if(!file.existsAsFile())
+        (new MyTask())->launchThread();
 }
 
 FrequalizerAudioProcessorEditor::~FrequalizerAudioProcessorEditor()
@@ -383,7 +387,7 @@ void FrequalizerAudioProcessorEditor::BandEditor::updateControls (FrequalizerAud
             frequency.setEnabled (true); quality.setEnabled (false); gain.setEnabled (false);
             break;
         case FrequalizerAudioProcessor::LowShelf:
-            frequency.setEnabled (true); quality.setEnabled (false); gain.setEnabled (true);
+            frequency.setEnabled (true); quality.setEnabled (true); gain.setEnabled (true);
             break;
         case FrequalizerAudioProcessor::BandPass:
             frequency.setEnabled (true); quality.setEnabled (true); gain.setEnabled (false);

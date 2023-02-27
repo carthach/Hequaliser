@@ -49,11 +49,11 @@ std::vector<FrequalizerAudioProcessor::Band> createDefaultBands()
     
     defaults.push_back (FrequalizerAudioProcessor::Band (TRANS (juce::String(bandNumber++)),       juce::Colours::brown,  FrequalizerAudioProcessor::LowShelf,   250.0f, 0.707f));
     
-    for(; bandNumber<9; ++bandNumber)
+    for(; bandNumber<9; bandNumber++)
         defaults.push_back (FrequalizerAudioProcessor::Band (TRANS (juce::String(bandNumber)),  juce::Colours::green,  FrequalizerAudioProcessor::Peak,       500.0f, 0.707f));
         
-    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS (juce::String(bandNumber++)),      juce::Colours::orange, FrequalizerAudioProcessor::HighShelf, 5000.0f, 0.707f));
-    
+    defaults.push_back (FrequalizerAudioProcessor::Band (TRANS (juce::String(bandNumber)),      juce::Colours::orange, FrequalizerAudioProcessor::HighShelf, 5000.0f, 0.707f));
+
     return defaults;
 }
 
@@ -110,7 +110,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
 
         auto qltyParameter = std::make_unique<juce::AudioParameterFloat> (juce::ParameterID{FrequalizerAudioProcessor::getQualityParamName (i), 1},
                                                                     prefix + TRANS ("Quality"),
-                                                                    juce::NormalisableRange<float> {0.1f, 10.0f, 1.0f, std::log (0.5f) / std::log (0.9f / 9.9f)},
+//                                                                    juce::NormalisableRange<float> {0.1f, 10.0f, 1.0f, std::log (0.5f) / std::log (0.9f / 9.9f)},
+                                                                    juce::NormalisableRange<float> {0.0f, 10.0f},
                                                                     defaults [i].quality,
                                                                     juce::String(),
                                                                     juce::AudioProcessorParameter::genericParameter,
@@ -348,7 +349,7 @@ void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
     auto preampSetting = headphoneSetting.getProperty("Preamp", 0.0f);
     DBG(preampSetting.toString());
     
-    for(int i=1; i<=10; ++i)
+    for(int i=1; i<=10; i++)
     {
         auto filterSettings = headphoneSetting.getProperty(String(i), var());
         
@@ -363,24 +364,45 @@ void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
             parameterValue = 8;
         else if(type == "HS")
             parameterValue = 9;
-        parameterChanged(parameterName, parameterValue);
+        
+        if(auto param = state.getParameter(parameterName))
+        {
+            param->beginChangeGesture();
+            param->setValueNotifyingHost(param->convertTo0to1(parameterValue));
+            param->endChangeGesture();
+        }
     
         parameterName = String(i) + "-frequency";
         parameterValue = filterSettings.getProperty("Fc", 0);
-        parameterChanged(parameterName, parameterValue);
+        
+        if(auto param = state.getParameter(parameterName))
+        {
+            param->beginChangeGesture();
+            param->setValueNotifyingHost(param->convertTo0to1(parameterValue));
+            param->endChangeGesture();
+        }
         
         parameterName = String(i) + "-gain";
         parameterValue = filterSettings.getProperty("Gain", 0.0);
         parameterValue = Decibels::decibelsToGain(parameterValue);
-        parameterChanged(parameterName, parameterValue);
+        
+        if(auto param = state.getParameter(parameterName))
+        {
+            param->beginChangeGesture();
+            param->setValueNotifyingHost(param->convertTo0to1(parameterValue));
+            param->endChangeGesture();
+        }
                         
         parameterName = String(i) + "-quality";
         parameterValue = filterSettings.getProperty("Q", 0.0);
-        parameterChanged(parameterName, parameterValue);
         
+        if(auto param = state.getParameter(parameterName))
+        {
+            param->beginChangeGesture();
+            param->setValueNotifyingHost(param->convertTo0to1(parameterValue));
+            param->endChangeGesture();
+        }
     }
-    
-    updateHostDisplay();
 }
 
 void FrequalizerAudioProcessor::loadBandSetting(juce::String parameter, float newValue)
@@ -391,6 +413,7 @@ void FrequalizerAudioProcessor::loadBandSetting(juce::String parameter, float ne
         auto* band = getBand (size_t (index));
         if (parameter.endsWith (paramType)) {
             band->type = static_cast<FilterType> (static_cast<int> (newValue));
+            
         }
         else if (parameter.endsWith (paramFrequency)) {
             band->frequency = newValue;

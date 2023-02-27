@@ -161,6 +161,7 @@ public:
         
         auto file = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
         file = file.getChildFile("Hequaliser/headphoneNames.txt");
+        file.create();
         file.replaceWithText("");
         FileOutputStream fileOutputStream(file);
         
