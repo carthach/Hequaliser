@@ -55,7 +55,7 @@ FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAud
 
     startTimerHz (30);
     
-    auto file = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+    auto file = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userApplicationDataDirectory);
     file = file.getChildFile("Hequaliser/headphoneNames.txt");
     
     if(!file.existsAsFile())

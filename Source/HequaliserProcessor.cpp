@@ -342,18 +342,18 @@ void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
 {
     auto headphoneName = getHeadphoneNames(headphoneSettings)[newValue];
         
-    auto headphoneSetting = headphoneSettings.getProperty(headphoneName, var());
+    auto headphoneSetting = headphoneSettings.getProperty(headphoneName, juce::var());
     
     auto preampSetting = headphoneSetting.getProperty("Preamp", 0.0f);
     
     for(int i=1; i<=10; i++)
     {
-        auto filterSettings = headphoneSetting.getProperty(String(i), var());
+        auto filterSettings = headphoneSetting.getProperty(juce::String(i), juce::var());
         
         if(filterSettings.isVoid())
             continue;
         
-        auto parameterName = String(i) + "-type";
+        auto parameterName = juce::String(i) + "-type";
         auto parameterValue = 0.0f;
         
         auto type = filterSettings.getProperty("Type", "none").toString();
@@ -372,7 +372,7 @@ void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
             param->endChangeGesture();
         }
     
-        parameterName = String(i) + "-frequency";
+        parameterName = juce::String(i) + "-frequency";
         parameterValue = filterSettings.getProperty("Fc", 0);
         
         if(auto param = state.getParameter(parameterName))
@@ -382,9 +382,9 @@ void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
             param->endChangeGesture();
         }
         
-        parameterName = String(i) + "-gain";
+        parameterName = juce::String(i) + "-gain";
         parameterValue = filterSettings.getProperty("Gain", 0.0);
-        parameterValue = Decibels::decibelsToGain(parameterValue);
+        parameterValue = juce::Decibels::decibelsToGain(parameterValue);
         
         if(auto param = state.getParameter(parameterName))
         {
@@ -393,7 +393,7 @@ void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
             param->endChangeGesture();
         }
                         
-        parameterName = String(i) + "-quality";
+        parameterName = juce::String(i) + "-quality";
         parameterValue = filterSettings.getProperty("Q", 0.0);
         
         if(auto param = state.getParameter(parameterName))
@@ -526,12 +526,12 @@ juce::StringArray FrequalizerAudioProcessor::getFilterTypeNames()
 
 juce::var FrequalizerAudioProcessor::getHeadphoneSettings()
 {
-    auto jsonFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+    auto jsonFile = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userApplicationDataDirectory);
     jsonFile = jsonFile.getChildFile("Hequaliser/headphoneNames.txt");
     
-    var json;
+    juce::var json;
     
-    String dummySetting = R"(
+    juce::String dummySetting = R"(
         {
            "ONE":{
               "Preamp":"-7.0",
@@ -555,7 +555,7 @@ juce::var FrequalizerAudioProcessor::getHeadphoneSettings()
 )";
     
     if (jsonFile.existsAsFile())
-        json = JSON::parse (jsonFile);
+        json = juce::JSON::parse (jsonFile);
     else {
         // Using (raw) string literals and json::parse
         juce::JSON::parse(dummySetting, json);
@@ -566,7 +566,7 @@ juce::var FrequalizerAudioProcessor::getHeadphoneSettings()
 
 juce::StringArray FrequalizerAudioProcessor::getHeadphoneNames(const juce::var& headphoneSettings)
 {
-    StringArray headphoneNames;
+    juce::StringArray headphoneNames;
         
     for(auto headphoneSetting : headphoneSettings.getDynamicObject()->getProperties())
         headphoneNames.add(headphoneSetting.name.toString());

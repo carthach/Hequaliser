@@ -12,8 +12,6 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_opengl/juce_opengl.h>
 
-using namespace juce;
-
 class MyTask  : public juce::ThreadWithProgressWindow
 {
 public:
@@ -22,23 +20,23 @@ public:
         
     }
     
-    String getResultText (const URL& url)
+    juce::String getResultText (const juce::URL& url)
     {
         juce::StringPairArray responseHeaders;
         int statusCode = 0;
         
-        MemoryOutputStream decodedStream;
-        Base64::convertFromBase64(decodedStream, "Z2hwX3JsVldkMVhDZW5qSlhjUDN4UmxLSWNzM1FLT2tHQzJiOHdSRw==");
+        juce::MemoryOutputStream decodedStream;
+        juce::Base64::convertFromBase64(decodedStream, "Z2hwX3JsVldkMVhDZW5qSlhjUDN4UmxLSWNzM1FLT2tHQzJiOHdSRw==");
         auto decodedKey = decodedStream.toString();
 
-        if (auto stream = url.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)
+        if (auto stream = url.createInputStream (juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inAddress)
                                                                                  .withConnectionTimeoutMs(0)
                                                                                  .withResponseHeaders (&responseHeaders)
                                                                                  .withStatusCode (&statusCode)
                                                                                  .withExtraHeaders("Authorization: Bearer " + decodedKey)
                                                  ))
         {
-//            return (statusCode != 0 ? "Status code: " + String (statusCode) + newLine : String())
+//            return (statusCode != 0 ? "Status code: " + juce::String (statusCode) + newLine : juce::String())
 //                    + "Response headers: " + newLine
 //                    + responseHeaders.getDescription() + newLine
 //                    + "----------------------------------------------------" + newLine
@@ -47,25 +45,25 @@ public:
         }
 
         if (statusCode != 0)
-            return "Failed to connect, status code = " + String (statusCode);
+            return "Failed to connect, status code = " + juce::String (statusCode);
 
         return "Failed to connect!";
     }
     
-    DynamicObject* getHeadphoneSetting(String headphoneSettingString)
+    juce::DynamicObject* getHeadphoneSetting(juce::String headphoneSettingString)
     {
-        auto headphoneSetting = new DynamicObject();
+        auto headphoneSetting = new juce::DynamicObject();
         
-        for(auto line : StringArray::fromLines(headphoneSettingString))
+        for(auto line : juce::StringArray::fromLines(headphoneSettingString))
         {
-            auto lineTokens = StringArray::fromTokens(line, " :", "");
+            auto lineTokens = juce::StringArray::fromTokens(line, " :", "");
 
             if(lineTokens[0] == "Preamp")
                 headphoneSetting->setProperty("Preamp", lineTokens[2]);
 
             if(lineTokens[0] == "Filter")
             {                                    
-                auto filterSetting = new DynamicObject();
+                auto filterSetting = new juce::DynamicObject();
 
                 filterSetting->setProperty("Type", lineTokens[lineTokens.indexOf("ON")+1]);
                 filterSetting->setProperty("Fc", lineTokens[lineTokens.indexOf("Fc")+1]);
@@ -81,27 +79,27 @@ public:
         return headphoneSetting;
     }    
     
-    var getHeadphoneSettings(URL url, const StringPairArray & fileIDs)
+    juce::var getHeadphoneSettings(juce::URL url, const juce::StringPairArray & fileIDs)
     {
         auto json = getResultText(url);
             
-        var inputJSON;
+        juce::var inputJSON;
         
-        auto parsedObject = new DynamicObject();
+        auto parsedObject = new juce::DynamicObject();
         
-        if (JSON::parse (json, inputJSON).wasOk())
+        if (juce::JSON::parse (json, inputJSON).wasOk())
             if (auto * obj = inputJSON.getDynamicObject())
                 if(auto * data = obj->getProperty("data").getDynamicObject())
                     if(auto * repo = data->getProperty("repository").getDynamicObject())
                         for(auto & file : repo->getProperties())
                             parsedObject->setProperty(fileIDs[file.name], getHeadphoneSetting(file.value["text"].toString()));
         
-        return var(parsedObject);
+        return juce::var(parsedObject);
     }
      
     void run()
     {
-        URL rootURL("https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/oratory1990/");
+        juce::URL rootURL("https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/oratory1990/");
                         
         auto result = getResultText(rootURL.getChildURL("README.md"));
         
@@ -110,14 +108,14 @@ public:
             return;
         
         result = result.fromLastOccurrenceOf("----------------------------------------------------", false, false);
-        auto resultList = StringArray::fromLines(result);
+        auto resultList = juce::StringArray::fromLines(result);
                 
         if(resultList[0].startsWith("Failed"))
            return;
             
-        auto postData = String::formatted(R"({"query": "query {repository(owner: \"jaakkopasanen\", name: \"AutoEq\") {)");
+        auto postData = juce::String::formatted(R"({"query": "query {repository(owner: \"jaakkopasanen\", name: \"AutoEq\") {)");
         
-        StringPairArray fileIDs;
+        juce::StringPairArray fileIDs;
                                                                     
         for (int i = 0; i < resultList.size();++i)
         {
@@ -131,20 +129,20 @@ public:
             if(!line.startsWith("- "))
                 continue;
             
-            auto lineTokens = StringArray::fromTokens(line, "[]/", "");
+            auto lineTokens = juce::StringArray::fromTokens(line, "[]/", "");
             
             auto headphoneName = lineTokens[1];
             auto headphoneLink = lineTokens[3];
             
-            String fileID("h");
-            fileID += String(i);
+            juce::String fileID("h");
+            fileID += juce::String(i);
                                                         
             if(headphoneName.isEmpty())
                 continue;
             
             fileIDs.set(fileID, headphoneName);
                                                                       
-            postData += String::formatted(R"(%s: object(expression: \"master:results/oratory1990/%s/%s/%s ParametricEQ.txt\") { ... on Blob { text } } )",fileID.toRawUTF8(), headphoneLink.toRawUTF8(), headphoneName.toRawUTF8(), headphoneName.toRawUTF8());
+            postData += juce::String::formatted(R"(%s: object(expression: \"master:results/oratory1990/%s/%s/%s ParametricEQ.txt\") { ... on Blob { text } } )",fileID.toRawUTF8(), headphoneLink.toRawUTF8(), headphoneName.toRawUTF8(), headphoneName.toRawUTF8());
                                                                                                                     
             // this will update the progress bar on the dialog box
             setProgress (i / (double) resultList.size());
@@ -154,18 +152,18 @@ public:
         
         postData += R"(}}"})";
                             
-        URL headphoneSettingURL("https://api.github.com/graphql"), headphone;
+        juce::URL headphoneSettingURL("https://api.github.com/graphql"), headphone;
         headphoneSettingURL = headphoneSettingURL.withPOSTData(postData);
                 
         auto headphoneSettings = getHeadphoneSettings(headphoneSettingURL, fileIDs);
         
-        auto file = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+        auto file = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userApplicationDataDirectory);
         file = file.getChildFile("Hequaliser/headphoneNames.txt");
         file.create();
         file.replaceWithText("");
-        FileOutputStream fileOutputStream(file);
+        juce::FileOutputStream fileOutputStream(file);
         
-        JSON::writeToStream(fileOutputStream, headphoneSettings);
+        juce::JSON::writeToStream(fileOutputStream, headphoneSettings);
     }
 };
 
