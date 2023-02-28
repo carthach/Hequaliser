@@ -68,12 +68,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     {
         auto headphoneSettings = FrequalizerAudioProcessor::getHeadphoneSettings();
         auto headphoneNames = FrequalizerAudioProcessor:: getHeadphoneNames(headphoneSettings);
-        if(headphoneNames.isEmpty())
-            headphoneNames = {"h1", "h1"};
-        
+            
         auto typeParameter = std::make_unique<juce::AudioParameterChoice> (juce::ParameterID{FrequalizerAudioProcessor::paramHeadphoneType, 1},
                                                                      TRANS ("Headphone Name"),
-                                                                           headphoneNames, 0);
+                                                                           juce::StringArray({"ONE", "TWO"}), 0);
         
         auto param = std::make_unique<juce::AudioParameterFloat> (juce::ParameterID{FrequalizerAudioProcessor::paramOutput, 1}, TRANS ("Output"),
                                                             juce::NormalisableRange<float> (0.0f, 2.0f, 0.01f), 1.0f,
@@ -343,15 +341,17 @@ juce::String FrequalizerAudioProcessor::getActiveParamName (size_t index)
 void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
 {
     auto headphoneName = getHeadphoneNames(headphoneSettings)[newValue];
-    
+        
     auto headphoneSetting = headphoneSettings.getProperty(headphoneName, var());
     
     auto preampSetting = headphoneSetting.getProperty("Preamp", 0.0f);
-    DBG(preampSetting.toString());
     
     for(int i=1; i<=10; i++)
     {
         auto filterSettings = headphoneSetting.getProperty(String(i), var());
+        
+        if(filterSettings.isVoid())
+            continue;
         
         auto parameterName = String(i) + "-type";
         auto parameterValue = 0.0f;
@@ -531,10 +531,37 @@ juce::var FrequalizerAudioProcessor::getHeadphoneSettings()
     
     var json;
     
+    String dummySetting = R"(
+        {
+           "ONE":{
+              "Preamp":"-7.0",
+              "1":{
+                 "Type":"LS",
+                 "Fc":"105",
+                 "Gain":"18.0",
+                 "Q":"0.70"
+              }
+           },
+           "TWO":{
+              "Preamp":"-7.0",
+              "1":{
+                 "Type":"LS",
+                 "Fc":"105",
+                 "Gain":"18.0",
+                 "Q":"0.70"
+              }
+           }
+        }
+)";
+    
     if (jsonFile.existsAsFile())
         json = JSON::parse (jsonFile);
-        
-    return json.getDynamicObject();
+    else {
+        // Using (raw) string literals and json::parse
+        juce::JSON::parse(dummySetting, json);
+    }
+    
+    return json;
 }
 
 juce::StringArray FrequalizerAudioProcessor::getHeadphoneNames(const juce::var& headphoneSettings)
