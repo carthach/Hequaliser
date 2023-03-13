@@ -71,7 +71,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
             
         auto typeParameter = std::make_unique<juce::AudioParameterChoice> (juce::ParameterID{FrequalizerAudioProcessor::paramHeadphoneType, 1},
                                                                      TRANS ("Headphone Name"),
-                                                                           juce::StringArray({"ONE", "TWO"}), 0);
+                                                                           headphoneNames, 0);
         
         auto param = std::make_unique<juce::AudioParameterFloat> (juce::ParameterID{FrequalizerAudioProcessor::paramOutput, 1}, TRANS ("Output"),
                                                             juce::NormalisableRange<float> (0.0f, 2.0f, 0.01f), 1.0f,
@@ -552,7 +552,7 @@ juce::var FrequalizerAudioProcessor::getHeadphoneSettings()
               }
            }
         }
-)";
+    )";
     
     if (jsonFile.existsAsFile())
         json = juce::JSON::parse (jsonFile);
