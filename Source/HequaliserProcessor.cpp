@@ -346,9 +346,9 @@ void FrequalizerAudioProcessor::loadHeadphoneSetting(int newValue)
     
     auto preampSetting = headphoneSetting.getProperty("Preamp", 0.0f);
     
-    for(int i=1; i<=10; i++)
+    for(int i=0; i<10; i++)
     {
-        auto filterSettings = headphoneSetting.getProperty(juce::String(i), juce::var());
+        auto filterSettings = headphoneSetting.getProperty(juce::String(i+1), juce::var());
         
         if(filterSettings.isVoid())
             continue;
