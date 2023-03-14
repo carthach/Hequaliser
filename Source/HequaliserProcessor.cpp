@@ -436,7 +436,7 @@ void FrequalizerAudioProcessor::parameterChanged (const juce::String& parameter,
 {
     if(parameter == paramHeadphoneType)
     {
-        loadHeadphoneSetting(newValue);
+        loadHeadphoneSetting(static_cast<int>(newValue));
         return;
     }
     

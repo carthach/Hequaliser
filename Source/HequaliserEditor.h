@@ -165,6 +165,21 @@ public:
         
         juce::JSON::writeToStream(fileOutputStream, headphoneSettings);
     }
+    
+    void threadComplete (bool userPressedCancel) override
+        {
+            const juce::String messageString (userPressedCancel ? "You pressed cancel!" : "Thread finished ok!");
+
+            juce::AlertWindow::showAsync (juce::MessageBoxOptions()
+                                      .withIconType (juce::MessageBoxIconType::InfoIcon)
+                                      .withTitle ("Progress window")
+                                      .withMessage (messageString)
+                                      .withButton ("OK"),
+                                    nullptr);
+
+            // ..and clean up by deleting our thread object..
+            delete this;
+        }
 };
 
 //==============================================================================
