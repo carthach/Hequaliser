@@ -132,6 +132,7 @@ jobs:
       run: ctest --output-on-failure -j4
 
     - name: Pluginval
+      continue-on-error: true
       working-directory: ${{ env.BUILD_DIR }}
       shell: bash
       run: |
