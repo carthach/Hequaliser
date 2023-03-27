@@ -8,7 +8,7 @@ set(PROJECT_NAME "Hequaliser")
 
 # Set the plugin formats you'll be building here.
 # Valid formats: AAX Unity VST AU AUv3 Standalone
-set(FORMATS AU VST3 AUv3)
+set(FORMATS AU VST3 AUv3 Standalone)
 
 # Reads in VERSION file and sticks in it CURRENT_VERSION variable
 # Be sure the file has no newlines
@@ -66,6 +66,7 @@ target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_20)
 
 # Manually list all .h and .cpp files for the plugin
 set(SourceFiles
+    Source/LookAndFeel.h
     Source/Analyser.h
     Source/SocialButtons.h
     Source/HequaliserEditor.h

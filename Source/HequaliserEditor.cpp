@@ -18,9 +18,11 @@ static float maxDB       = 24.0f;
 FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAudioProcessor& p)
   : juce::AudioProcessorEditor (&p), freqProcessor (p)    
 {
+    setLookAndFeel(&darkLookAndFeel);
+    
     tooltipWindow->setMillisecondsBeforeTipAppears (1000);
 
-    addAndMakeVisible (socialButtons);
+//    addAndMakeVisible (socialButtons);
 
     for (size_t i=0; i < freqProcessor.getNumBands(); ++i) {
         auto* bandEditor = bandEditors.add (new BandEditor (i, freqProcessor));
@@ -64,6 +66,7 @@ FrequalizerAudioProcessorEditor::FrequalizerAudioProcessorEditor (FrequalizerAud
 
 FrequalizerAudioProcessorEditor::~FrequalizerAudioProcessorEditor()
 {
+    setLookAndFeel(nullptr);
     juce::PopupMenu::dismissAllActiveMenus();
 
     freqProcessor.removeChangeListener (this);
@@ -81,9 +84,10 @@ void FrequalizerAudioProcessorEditor::paint (juce::Graphics& g)
     juce::Graphics::ScopedSaveState state (g);
 
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(juce::Colours::black.withAlpha(0.5f));
 
-    auto logo = juce::ImageCache::getFromMemory (BinaryData::LogoFF_png, BinaryData::LogoFF_pngSize);
-    g.drawImage (logo, brandingFrame.toFloat(), juce::RectanglePlacement (juce::RectanglePlacement::fillDestination));
+//    auto logo = juce::ImageCache::getFromMemory (BinaryData::LogoFF_png, BinaryData::LogoFF_pngSize);
+//    g.drawImage (logo, brandingFrame.toFloat(), juce::RectanglePlacement (juce::RectanglePlacement::fillDestination));
 
     g.setFont (12.0f);
     g.setColour (juce::Colours::silver);
@@ -145,12 +149,14 @@ void FrequalizerAudioProcessorEditor::resized()
     plotFrame = getLocalBounds().reduced (3, 3);
 
     socialButtons.setBounds (plotFrame.removeFromBottom (35));
+    
+    plotFrame.removeFromBottom (getHeight() / 4);
 
-    auto bandSpace = plotFrame.removeFromBottom (getHeight() / 2);
+    auto bandSpace = plotFrame.removeFromBottom (getHeight() / 4);
     auto width = juce::roundToInt (bandSpace.getWidth()) / (bandEditors.size() + 1);
     for (auto* bandEditor : bandEditors)
         bandEditor->setBounds (bandSpace.removeFromLeft (width));
-
+    
     frame.setBounds (bandSpace.removeFromTop (bandSpace.getHeight() / 2));
     output.setBounds (frame.getBounds().reduced (8));
     headphoneType.setBounds (frame.getBounds().reduced (8));
@@ -333,14 +339,17 @@ FrequalizerAudioProcessorEditor::BandEditor::BandEditor (size_t i, FrequalizerAu
     boxAttachments.add (new juce::AudioProcessorValueTreeState::ComboBoxAttachment (processor.getPluginState(), processor.getTypeParamName (index), filterType));
 
     addAndMakeVisible (frequency);
+    frequency.setSliderStyle(Slider::SliderStyle::LinearBar);
     attachments.add (new juce::AudioProcessorValueTreeState::SliderAttachment (processor.getPluginState(), processor.getFrequencyParamName (index), frequency));
     frequency.setTooltip (TRANS ("Filter's frequency"));
 
     addAndMakeVisible (quality);
+    quality.setSliderStyle(Slider::SliderStyle::LinearBar);
     attachments.add (new juce::AudioProcessorValueTreeState::SliderAttachment (processor.getPluginState(), processor.getQualityParamName (index), quality));
     quality.setTooltip (TRANS ("Filter's steepness (Quality)"));
 
     addAndMakeVisible (gain);
+    gain.setSliderStyle(Slider::SliderStyle::LinearBar);
     attachments.add (new juce::AudioProcessorValueTreeState::SliderAttachment (processor.getPluginState(), processor.getGainParamName (index), gain));
     gain.setTooltip (TRANS ("Filter's gain"));
 
@@ -365,16 +374,24 @@ void FrequalizerAudioProcessorEditor::BandEditor::resized ()
     bounds.reduce (10, 20);
 
     filterType.setBounds (bounds.removeFromTop (20));
-
-    auto freqBounds = bounds.removeFromBottom (bounds.getHeight() * 2 / 3);
-    frequency.setBounds (freqBounds.withTop (freqBounds.getY() + 10));
-
-    auto buttons = freqBounds.reduced (5).withHeight (20);
-    solo.setBounds (buttons.removeFromLeft (20));
-    activate.setBounds (buttons.removeFromRight (20));
-
-    quality.setBounds (bounds.removeFromLeft (bounds.getWidth() / 2));
-    gain.setBounds (bounds);
+    
+    bounds.removeFromTop(5);
+    quality.setBounds (bounds.removeFromTop (20));
+    
+    bounds.removeFromTop(5);
+    frequency.setBounds (bounds.removeFromTop (20));
+    
+    bounds.removeFromTop(5);
+    gain.setBounds (bounds.removeFromTop (20));
+    
+//    auto freqBounds = bounds.removeFromBottom (bounds.getHeight() * 2 / 3);
+//    frequency.setBounds (freqBounds.withTop (freqBounds.getY() + 10));
+//
+    auto buttons = bounds.reduced (5).withHeight (15);
+    solo.setBounds (buttons.removeFromLeft (35));
+    activate.setBounds (buttons.removeFromRight (35));
+//
+//    gain.setBounds (bounds);
 }
 
 void FrequalizerAudioProcessorEditor::BandEditor::updateControls (FrequalizerAudioProcessor::FilterType type)
